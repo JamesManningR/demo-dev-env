@@ -1,0 +1,38 @@
+version: "3"
+services:
+  client:
+    image: dev-client
+    container_name: client
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - ./client:/app
+      - /client/node_modules
+    environment:
+      - VUE_APP_API_URL=api
+
+  api:
+    image: dev-api
+    container_name: api
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./api
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    environment:
+      - PORT=5000
+
+  router:
+    image: dev-nginx
+    container_name: router
+    depends_on:
+      - api
+      - client
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./router
+    ports:
+      - "1337:7888"
