@@ -4,7 +4,6 @@ services:
     image: dev-client
     container_name: client
     build:
-      dockerfile: Dockerfile.dev
       context: ./client
     volumes:
       - ./client:/app
@@ -16,7 +15,6 @@ services:
     image: dev-api
     container_name: api
     build:
-      dockerfile: Dockerfile.dev
       context: ./api
     volumes:
       - ./api:/app
@@ -32,7 +30,6 @@ services:
       - client
     restart: always
     build:
-      dockerfile: Dockerfile.dev
       context: ./router
     ports:
       - "1337:7888"
