@@ -1,0 +1,68 @@
+name: Deploy to Dockerhub
+
+on:
+  repository_dispatch:
+    types:
+      - run_push_to_dockerhub
+  workflow_dispatch:
+
+jobs:
+  api-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-api ./api
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-api
+
+  client-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-client ./client
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-client
+
+  router-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-router ./router
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-router

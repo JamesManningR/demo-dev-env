@@ -1,0 +1,30 @@
+name: Push to AWS
+
+on:
+  repository_dispatch:
+    types:
+      - run_push_to_aws
+  workflow_dispatch:
+
+jobs:
+  aws-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Generate Deployment zip
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v14
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: example-web-app
+          environment_name: ExampleWebApp-env
+          version_label: ${{ github.run_number }}
+          region: eu-west-2
+          deployment_package: deploy.zip

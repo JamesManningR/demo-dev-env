@@ -1,0 +1,91 @@
+name: Build and Deploy
+
+on:
+  repository_dispatch:
+    types:
+      - run_push_to_staging
+  workflow_dispatch:
+
+jobs:
+  api-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-api ./api
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-api
+
+  client-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-client ./client
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-client
+
+  router-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: "Checkout Github"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Build Image"
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/example-app-router ./router
+
+      - name: "Push to dockerhub"
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/example-app-router
+
+  aws-deploy:
+    runs-on: ubuntu-latest
+    needs: [client-image, api-image, router-image]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Generate Deployment zip
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v14
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: example-web-app
+          environment_name: ExampleWebApp-env
+          version_label: ${{ github.run_number }}
+          region: eu-west-2
+          deployment_package: deploy.zip

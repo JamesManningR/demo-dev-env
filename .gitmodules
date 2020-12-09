@@ -1,7 +1,9 @@
 [submodule "api"]
 	path = api
-	url = https://github.com/JamesManningR/fake-post-api
+	url = https://github.com/JamesManningR/minimal-express-api
+  branch = master
 
 [submodule "client"]
   path = client
-  url = https://github.com/JamesManningR/material-post-app.git
+  url = https://github.com/JamesManningR/fake-post-api
+  branch = master
